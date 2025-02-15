@@ -1,9 +1,12 @@
-import './App.css'
+import React from "react";
+import Bookstore from "./component/Bookstore";
 
-export default function App() {
+function App() {
   return (
-    <main>
-      React ⚛️ + Vite ⚡ + Replit
-    </main>
-  )
+    <div>
+      <Bookstore />
+    </div>
+  );
 }
+
+export default App;
