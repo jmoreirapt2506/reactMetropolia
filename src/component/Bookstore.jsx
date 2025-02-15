@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { database, ref, get, set, remove, push } from "../firebaseConfig";
 import { DataGrid } from "@mui/x-data-grid";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -18,36 +17,56 @@ function Bookstore() {
     price: "",
   });
 
+  const firebaseURL =
+    "https://bookstore-85215-default-rtdb.europe-west1.firebasedatabase.app/books";
+
   useEffect(() => {
     fetchBooks();
   }, []);
 
   const fetchBooks = async () => {
-    const bookRef = ref(database, "books");
-    const snapshot = await get(bookRef);
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      const bookList = Object.keys(data).map((key) => ({
-        id: key,
-        ...data[key],
-      }));
-      setBooks(bookList);
+    try {
+      const response = await fetch(`${firebaseURL}.json`);
+      const data = await response.json();
+      if (data) {
+        const bookList = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        setBooks(bookList);
+      } else {
+        setBooks([]);
+      }
+    } catch (error) {
+      console.error("Error al obtener libros:", error);
     }
   };
 
-  // Add a new book to Firebase
   const addBook = async () => {
-    const bookRef = ref(database, "books");
-    const newBookRef = push(bookRef);
-    await set(newBookRef, newBook);
-    setNewBook({ title: "", author: "", year: "", isbn: "", price: "" });
-    fetchBooks();
+    try {
+      const response = await fetch(`${firebaseURL}.json`, {
+        method: "POST",
+        body: JSON.stringify(newBook),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        setNewBook({ title: "", author: "", year: "", isbn: "", price: "" });
+        fetchBooks();
+      }
+    } catch (error) {
+      console.error("Error al agregar libro:", error);
+    }
   };
 
   const deleteBook = async (id) => {
-    const bookRef = ref(database, `books/${id}`);
-    await remove(bookRef);
-    fetchBooks();
+    try {
+      await fetch(`${firebaseURL}/${id}.json`, { method: "DELETE" });
+      fetchBooks();
+    } catch (error) {
+      console.error("Error al eliminar libro:", error);
+    }
   };
 
   const columns = [
